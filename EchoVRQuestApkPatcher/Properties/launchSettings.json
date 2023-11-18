@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EchoVRQuestApkPatcher": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\paf74\\source\\repos\\EchoVRQuestApkPatcher\\EchoVRQuestApkPatcher\\bin\\Release\\net7.0\\r15_goldmaster_store.apk"
+    }
+  }
+}
