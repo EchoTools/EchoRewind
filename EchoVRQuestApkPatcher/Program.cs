@@ -87,8 +87,6 @@ static class Program
         if (!File.Exists(configPath))
             ExitLog("Invalid Config: Config not found, please confirm config is in the same directory as the executable");
 
-        if (!Environment.GetEnvironmentVariable("PATH")!.ToLower().Contains("java"))
-            ExitLog("Java not found: Please confirm you have JDK Development Kit installed");
         string ConfigString;
         try
         {
