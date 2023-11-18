@@ -174,7 +174,7 @@ static class Program
         uberJarStream.Close();
         uberJarFile.Close();
 
-        Console.WriteLine("Creating unisgned apk...");
+        Console.WriteLine("Creating unsigned apk...");
         var unsignedApkPath = Path.Join(miscDir, "unsigned.apk");
         ZipFile.CreateFromDirectory(extractedApkDir, unsignedApkPath);
 
