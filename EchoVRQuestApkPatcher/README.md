@@ -8,7 +8,7 @@ EchoRewind is a patcher designed for the Quest client of the game EchoVR, enabli
 
 1. **Download JDK Development Kit:** [JDK Development Kit](https://www.oracle.com/java/technologies/downloads/#jdk21-windows).
 
-2. **Download EchoRewind executable:** Obtain the latest release of EchoRewind from the [release page](releases).
+2. **Download EchoRewind executable:** Obtain the latest release of EchoRewind from the [release page](https://github.com/C-Luddy/EchoRewind/releases).
 
 3. **Download the second to last EchoVR release for Quest:** [EchoVR release for Quest](https://oculusdb.rui2015.me/id/2215004568539258). (Also download OBBs for later use)
 
