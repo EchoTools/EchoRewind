@@ -141,7 +141,7 @@ static class Program
         Console.WriteLine("Extracting files...");
         ZipFile.ExtractToDirectory(args[0], extractedApkDir);
         var extractedLocalPath = Path.Join(extractedApkDir, "assets", "_local");
-        var extractedPnsRadOvrPath = Path.Join(extractedApkDir, @"lib\arm64-v8a\libpnsovr.so");
+        var extractedPnsRadOvrPath = Path.Join(extractedApkDir, @"lib", "arm64-v8a", "libpnsovr.so");
 
         Console.WriteLine("Copying config.json...");
         Directory.CreateDirectory(extractedLocalPath); // No need to check for existence, as the hash will capture that
