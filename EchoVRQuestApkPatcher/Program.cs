@@ -113,8 +113,6 @@ static class Program
 
         if (Assembly.GetExecutingAssembly().GetManifestResourceInfo("EchoVRQuestApkPatcher.libpnsovr_patch.bin") == null)
             ExitLog("");
-        if (Assembly.GetExecutingAssembly().GetManifestResourceInfo("EchoVRQuestApkPatcher.uber.jar") == null)
-            ExitLog("");
     }
 
     static void Main(string[] args)
@@ -164,35 +162,20 @@ static class Program
             Directory.Delete(miscDir, true);
         Directory.CreateDirectory(miscDir);
 
-        Console.WriteLine("Extracting uber.jar...");
-        var uberJarPath = Path.Join(miscDir, "uber.jar");
-        var uberJarStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.uber.jar");
-
-        Console.WriteLine("Writing uber.jar...");
-        var uberJarFile = File.Create(uberJarPath);
-        uberJarStream.CopyTo(uberJarFile);
-        uberJarStream.Close();
-        uberJarFile.Close();
-
         Console.WriteLine("Creating unsigned apk...");
         var unsignedApkPath = Path.Join(miscDir, "unsigned.apk");
         ZipFile.CreateFromDirectory(extractedApkDir, unsignedApkPath);
 
         Console.WriteLine("Signing unsigned apk...");
-        Process process = new();
-        process.StartInfo.FileName = "java";
-        process.StartInfo.Arguments = $"-jar \"{uberJarPath}\" -a \"{unsignedApkPath}\" --out \"{miscDir}\" --allowResign";
-        process.StartInfo.CreateNoWindow = true;
-        process.Start();
-        process.WaitForExit();
-
-        if (process.ExitCode != 0)
-            ExitLog("Signing Failed: Please try again");
+        var unsignedApkSteam = File.Open(unsignedApkPath, FileMode.Open);
+        //sign APK (this is how you do it with this lib)
+        QuestPatcher.Zip.ApkZip.Open(unsignedApkSteam).Dispose();
+        unsignedApkSteam.Close();
 
         Console.WriteLine("Moving signed apk...");
         if (File.Exists(newApkPath))
             File.Delete(newApkPath);
-        File.Move(Path.Join(miscDir, "unsigned-aligned-debugSigned.apk"), newApkPath);
+        File.Move(unsignedApkPath, newApkPath);
 
         Console.WriteLine("Cleaning up temporary files...");
         Directory.Delete(extractedApkDir, true);
