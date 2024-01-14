@@ -112,7 +112,10 @@ static class Program
             ExitLog("Invalid Config: Service endpoints incorrect, please confrim all endpoitns are correct");
 
         if (Assembly.GetExecutingAssembly().GetManifestResourceInfo("EchoVRQuestApkPatcher.libpnsovr_patch.bin") == null)
-            ExitLog("");
+            ExitLog("Error getting ovr patch");
+
+        if (Assembly.GetExecutingAssembly().GetManifestResourceInfo("EchoVRQuestApkPatcher.libr15_patch.bin") == null)
+            ExitLog("Error getting r15 patch");
     }
 
     static void Main(string[] args)
@@ -140,6 +143,7 @@ static class Program
         ZipFile.ExtractToDirectory(args[0], extractedApkDir);
         var extractedLocalPath = Path.Join(extractedApkDir, "assets", "_local");
         var extractedPnsRadOvrPath = Path.Join(extractedApkDir, @"lib", "arm64-v8a", "libpnsovr.so");
+        var extractedr15Path = Path.Join(extractedApkDir, @"lib", "arm64-v8a", "libr15.so");
 
         Console.WriteLine("Copying config.json...");
         Directory.CreateDirectory(extractedLocalPath); // No need to check for existence, as the hash will capture that
@@ -152,9 +156,20 @@ static class Program
         oldPnsOvrFile.Close();
         newPnsOvrFile.Close();
 
+        Console.WriteLine("Patching libr15.so...");
+        using var oldr15File = File.OpenRead(extractedr15Path);
+        using var newr15File = File.Create(extractedr15Path + "_patched");
+        BinaryPatch.Apply(oldr15File, () => Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.libr15_patch.bin"), newr15File);
+        oldr15File.Close();
+        newr15File.Close();
+
         Console.WriteLine("Swapping pnsradovr.so...");
         File.Delete(extractedPnsRadOvrPath);
         File.Move(extractedPnsRadOvrPath + "_patched", extractedPnsRadOvrPath);
+
+        Console.WriteLine("Swapping libr15.so...");
+        File.Delete(extractedr15Path);
+        File.Move(extractedr15Path + "_patched", extractedr15Path);
 
         Console.WriteLine("Creating miscellaneous directory...");
         string miscDir = Path.Join(Path.GetTempPath(), "EchoQuest");

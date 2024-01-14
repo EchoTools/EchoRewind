@@ -18,11 +18,13 @@
 
   <ItemGroup>
     <None Remove="libpnsovr_patch.bin" />
+    <None Remove="libr15_patch.bin" />
     <None Remove="uber.jar" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="libpnsovr_patch.bin" />
+	<EmbeddedResource Include="libr15_patch.bin" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,5 +32,4 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="QuestPatcher.Zip" Version="1.1.2" />
   </ItemGroup>
-
 </Project>
