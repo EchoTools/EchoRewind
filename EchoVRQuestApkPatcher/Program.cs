@@ -109,7 +109,7 @@ static class Program
         }
 
         if (!CheckJson(ConfigJson))
-            ExitLog("Invalid Config: Service endpoints incorrect, please confrim all endpoitns are correct");
+            ExitLog("Invalid Config: Service endpoints incorrect, please confirm all endpoints are correct");
 
         if (Assembly.GetExecutingAssembly().GetManifestResourceInfo("EchoVRQuestApkPatcher.libpnsovr_patch.bin") == null)
             ExitLog("Error getting ovr patch");
