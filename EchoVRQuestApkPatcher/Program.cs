@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -76,13 +76,14 @@ static class Program
         return true;
     }
 
-    static void CheckPrerequisites(string originalApkPath, string configPath)
+    static void CheckPrerequisites(string originalApkPath, string configPath, bool noHash)
     {
         if (!File.Exists(originalApkPath))
             ExitLog("Invalid EchoVR APK: Please drag and drop EchoVR APK onto exe");
-
-        if (CalculateMD5(originalApkPath) != Hashes.APK)
-            ExitLog("Invalid EchoVR APK (Hash mismatch) : please download the correct APK via\nOculusDB: https://oculusdb.rui2015.me/id/2215004568539258\nVersion: 4987566");
+        if (noHash == false)        
+            if (CalculateMD5(originalApkPath) != Hashes.APK)
+                ExitLog("Invalid EchoVR APK (Hash mismatch) : please download the correct APK via\nOculusDB: https://oculusdb.rui2015.me/id/2215004568539258\nVersion: 4987566");
+        
 
         if (!File.Exists(configPath))
             ExitLog("Invalid Config: Config not found, please confirm config is in the same directory as the executable");
@@ -130,8 +131,37 @@ static class Program
         var newApkPath = Path.Join(baseDir, "r15_goldmaster_store_patched.apk");
         var configPath = Path.Join(baseDir, "config.json");
 
+        //Initialize Vars
+        var noHash = false;
+        var noPnsovr = false;
+        var noLibr15 = false;
+
+        //Check if flags are set
+        foreach (string flag in args)        
+            if (flag == "--no-hash")            
+                noHash = true;            
+            else if (flag == "--no-pnsovr")           
+                noPnsovr = true;            
+            else if (flag == "--no-libr15")            
+                noLibr15 = true;
+            
+        
+
+        if (noHash == true)        
+            Console.WriteLine("Hash will not be checked!");
+        
+
+        if (noPnsovr == true)        
+            Console.WriteLine("pnsovr will not be patched!");
+        
+
+        if (noLibr15 == true)        
+            Console.WriteLine("libr15 will not be patched!");
+        
+
+
         Console.WriteLine("Checking prerequisites...");
-        CheckPrerequisites(originalApkPath, configPath);
+        CheckPrerequisites(originalApkPath, configPath, noHash);
 
         Console.WriteLine("Creating extraction directory...");
         var extractedApkDir = Path.Join(Path.GetTempPath(), "EchoQuestUnzip");
@@ -145,31 +175,44 @@ static class Program
         var extractedPnsRadOvrPath = Path.Join(extractedApkDir, @"lib", "arm64-v8a", "libpnsovr.so");
         var extractedr15Path = Path.Join(extractedApkDir, @"lib", "arm64-v8a", "libr15.so");
 
+        string fullConfigPath = Path.Combine(extractedLocalPath, "config.json");
+
         Console.WriteLine("Copying config.json...");
-        Directory.CreateDirectory(extractedLocalPath); // No need to check for existence, as the hash will capture that
+        if (File.Exists(fullConfigPath))//if the config.json already exists, delete it
+            File.Delete(fullConfigPath);
+        Directory.CreateDirectory(extractedLocalPath); 
         File.Copy(configPath, Path.Join(extractedLocalPath, "config.json"));
 
-        Console.WriteLine("Patching pnsradovr.so...");
-        using var oldPnsOvrFile = File.OpenRead(extractedPnsRadOvrPath);
-        using var newPnsOvrFile = File.Create(extractedPnsRadOvrPath + "_patched");
-        BinaryPatch.Apply(oldPnsOvrFile, () => Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.libpnsovr_patch.bin"), newPnsOvrFile);
-        oldPnsOvrFile.Close();
-        newPnsOvrFile.Close();
 
-        Console.WriteLine("Patching libr15.so...");
-        using var oldr15File = File.OpenRead(extractedr15Path);
-        using var newr15File = File.Create(extractedr15Path + "_patched");
-        BinaryPatch.Apply(oldr15File, () => Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.libr15_patch.bin"), newr15File);
-        oldr15File.Close();
-        newr15File.Close();
+        if (noPnsovr == false)        
+            Console.WriteLine("Patching libpnsovr.so...");
+            using var oldPnsOvrFile = File.OpenRead(extractedPnsRadOvrPath);
+            using var newPnsOvrFile = File.Create(extractedPnsRadOvrPath + "_patched");
+            BinaryPatch.Apply(oldPnsOvrFile, () => Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.libpnsovr_patch.bin"), newPnsOvrFile);
+            oldPnsOvrFile.Close();
+            newPnsOvrFile.Close();
+        
 
-        Console.WriteLine("Swapping pnsradovr.so...");
-        File.Delete(extractedPnsRadOvrPath);
-        File.Move(extractedPnsRadOvrPath + "_patched", extractedPnsRadOvrPath);
+        if (noLibr15 == false)        
+            Console.WriteLine("Patching libr15.so...");
+            using var oldr15File = File.OpenRead(extractedr15Path);
+            using var newr15File = File.Create(extractedr15Path + "_patched");
+            BinaryPatch.Apply(oldr15File, () => Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.libr15_patch.bin"), newr15File);
+            oldr15File.Close();
+            newr15File.Close();
+        
 
-        Console.WriteLine("Swapping libr15.so...");
-        File.Delete(extractedr15Path);
-        File.Move(extractedr15Path + "_patched", extractedr15Path);
+        if (noPnsovr == false)        
+            Console.WriteLine("Swapping libpnsovr.so...");
+            File.Delete(extractedPnsRadOvrPath);
+            File.Move(extractedPnsRadOvrPath + "_patched", extractedPnsRadOvrPath);
+        
+
+        if (noLibr15 == false)        
+            Console.WriteLine("Swapping libr15.so...");
+            File.Delete(extractedr15Path);
+            File.Move(extractedr15Path + "_patched", extractedr15Path);
+        
 
         Console.WriteLine("Creating miscellaneous directory...");
         string miscDir = Path.Join(Path.GetTempPath(), "EchoQuest");
