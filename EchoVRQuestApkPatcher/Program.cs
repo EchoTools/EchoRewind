@@ -80,9 +80,11 @@ static class Program
     {
         if (!File.Exists(originalApkPath))
             ExitLog("Invalid EchoVR APK: Please drag and drop EchoVR APK onto exe");
-        if (noHash == false)        
+        if (noHash == false)
+        {
             if (CalculateMD5(originalApkPath) != Hashes.APK)
                 ExitLog("Invalid EchoVR APK (Hash mismatch) : please download the correct APK via\nOculusDB: https://oculusdb.rui2015.me/id/2215004568539258\nVersion: 4987566");
+        }
         
 
         if (!File.Exists(configPath))
@@ -137,13 +139,15 @@ static class Program
         var noLibr15 = false;
 
         //Check if flags are set
-        foreach (string flag in args)        
-            if (flag == "--no-hash")            
-                noHash = true;            
-            else if (flag == "--no-pnsovr")           
-                noPnsovr = true;            
-            else if (flag == "--no-libr15")            
+        foreach (string flag in args)
+        {
+            if (flag == "--no-hash")
+                noHash = true;
+            else if (flag == "--no-pnsovr")
+                noPnsovr = true;
+            else if (flag == "--no-libr15")
                 noLibr15 = true;
+        }
             
         
 
@@ -184,34 +188,41 @@ static class Program
         File.Copy(configPath, Path.Join(extractedLocalPath, "config.json"));
 
 
-        if (noPnsovr == false)        
+        if (noPnsovr == false)
+        {
             Console.WriteLine("Patching libpnsovr.so...");
             using var oldPnsOvrFile = File.OpenRead(extractedPnsRadOvrPath);
             using var newPnsOvrFile = File.Create(extractedPnsRadOvrPath + "_patched");
             BinaryPatch.Apply(oldPnsOvrFile, () => Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.libpnsovr_patch.bin"), newPnsOvrFile);
             oldPnsOvrFile.Close();
             newPnsOvrFile.Close();
-        
+        }
 
-        if (noLibr15 == false)        
+
+        if (noLibr15 == false)
+        {
             Console.WriteLine("Patching libr15.so...");
             using var oldr15File = File.OpenRead(extractedr15Path);
             using var newr15File = File.Create(extractedr15Path + "_patched");
             BinaryPatch.Apply(oldr15File, () => Assembly.GetExecutingAssembly().GetManifestResourceStream("EchoVRQuestApkPatcher.libr15_patch.bin"), newr15File);
             oldr15File.Close();
             newr15File.Close();
-        
+        }
 
-        if (noPnsovr == false)        
+
+        if (noPnsovr == false)
+        {
             Console.WriteLine("Swapping libpnsovr.so...");
             File.Delete(extractedPnsRadOvrPath);
             File.Move(extractedPnsRadOvrPath + "_patched", extractedPnsRadOvrPath);
-        
+        }
 
-        if (noLibr15 == false)        
+        if (noLibr15 == false)
+        {
             Console.WriteLine("Swapping libr15.so...");
             File.Delete(extractedr15Path);
             File.Move(extractedr15Path + "_patched", extractedr15Path);
+        }
         
 
         Console.WriteLine("Creating miscellaneous directory...");
